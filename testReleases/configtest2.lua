@@ -5194,8 +5194,8 @@ function MacLib:Window(Settings)
 	
 	local ClassParser = {
 		["Toggle"] = {
-			Save = function(Flag)
-				return {flag = Flag, value = MacLib.Options[Flag].State}
+			Save = function(Flag, data)
+				return {flag = Flag, value = data.State}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5204,8 +5204,8 @@ function MacLib:Window(Settings)
 			end
 		},
 		["Slider"] = {
-			Save = function(Flag)
-				return {flag = Flag, value = MacLib.Options[Flag].Value}
+			Save = function(Flag, data)
+				return {flag = Flag, value = data.Value}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5214,8 +5214,8 @@ function MacLib:Window(Settings)
 			end
 		},
 		["Input"] = {
-			Save = function(Flag)
-				return {flag = Flag, value = MacLib.Options[Flag].Text}
+			Save = function(Flag, data)
+				return {flag = Flag, value = data.Text}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5224,8 +5224,8 @@ function MacLib:Window(Settings)
 			end
 		},
 		["Keybind"] = {
-			Save = function(Flag)
-				return {flag = Flag, value = MacLib.Options[Flag].Bind}
+			Save = function(Flag, data)
+				return {flag = Flag, value = data.Bind}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5234,8 +5234,8 @@ function MacLib:Window(Settings)
 			end
 		},
 		["Dropdown"] = {
-			Save = function(Flag)
-				return {flag = Flag, value = MacLib.Options[Flag].Value}
+			Save = function(Flag, data)
+				return {flag = Flag, value = data.Value}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5244,8 +5244,8 @@ function MacLib:Window(Settings)
 			end
 		},
 		["Colorpicker"] = {
-			Save = function(Flag)
-				return {flag = Flag, value = MacLib.Options[Flag].Color}
+			Save = function(Flag, data)
+				return {flag = Flag, value = data.Color}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5275,31 +5275,6 @@ function MacLib:Window(Settings)
 	end
 	
 	function MacLib:SaveConfig(Path)
-		--[=[if not Path then
-			return false, [[Path not specified.]]
-		end
-		
-		Path = Path .. "/settings"
-		
-		local configData = {
-			savedObjects = {}
-		}
-
-		for flag, data in next, MacLib.Options do
-			if data.IgnoreConfig then continue end
-			
-			table.insert(configData.savedObjects, ClassParser[data.Class].Save(flag))
-		end	
-
-		local success, file = pcall(HttpService.JSONEncode, HttpService, configData)
-		if not success then
-			return false, [[Unable to process config data.]]
-		end
-
-		writefile(Path, file)
-		return true]=]
-		
-		
 		if (not Path) then
 			return false, "Please select a config file."
 		end
@@ -5314,7 +5289,7 @@ function MacLib:Window(Settings)
 			if not ClassParser[option.Class] then continue end
 			if option.IgnoreConfig then continue end
 
-			table.insert(data.objects, ClassParser[option.Class].Save(flag))
+			table.insert(data.objects, ClassParser[option.Class].Save(flag, option))
 		end	
 
 		local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
@@ -5327,27 +5302,6 @@ function MacLib:Window(Settings)
 	end
 	
 	function MacLib:LoadConfig(Path)
-		--[=[if not Path then
-			return false, [[Path not specified.]]
-		end
-
-		if not isfile(Path) then return false, [[Invalid path.]] end
-
-		local success, file = pcall(HttpService.JSONDecode, HttpService, readfile(Path))
-		if not success then 
-			return false, [[Unable to process config data.]] 
-		end
-
-		for flag, data in next, file.savedObjects do
-			if ClassParser[data.Class] then
-				task.spawn(function() 
-					ClassParser[data.Class].Load(flag, data) 
-				end)
-			end
-		end
-
-		return true]=]
-		
 		if (not Path) then
 			return false, "Please select a config file."
 		end
