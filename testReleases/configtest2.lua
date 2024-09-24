@@ -4499,7 +4499,7 @@ function MacLib:Window(Settings)
 				SelectCurrentTab()
 			end
 			
-			function SectionFunctions:InsertConfigSection(Side)
+			function TabFunctions:InsertConfigSection(Side)
 				local configSection = TabFunctions:Section({ Side = "Left" })
 				local inputPath = nil
 				local selectedConfig = nil
@@ -4547,8 +4547,8 @@ function MacLib:Window(Settings)
 							Description = string.format("Created config %q", inputPath),
 						})
 
+						configSelection:ClearOptions()
 						configSelection:InsertOptions(MacLib:RefreshConfigList())
-						configSelection:UpdateSelection(nil)
 					end,
 				})
 
@@ -4593,8 +4593,8 @@ function MacLib:Window(Settings)
 				configSection:Button({
 					Name = "Refresh Config List",
 					Callback = function()
+						configSelection:ClearOptions()
 						configSelection:InsertOptions(MacLib:RefreshConfigList())
-						configSelection:UpdateSelection(nil)
 					end,
 				})
 			end
