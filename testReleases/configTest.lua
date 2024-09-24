@@ -772,7 +772,7 @@ function MacLib:Window(Settings)
 		Enum.FontStyle.Normal
 	)
 	currentTab.RichText = true
-	currentTab.Text = "Tab"
+	currentTab.Text = ""
 	currentTab.RichText = true
 	currentTab.TextColor3 = Color3.fromRGB(255, 255, 255)
 	currentTab.TextSize = 15
@@ -4497,8 +4497,8 @@ function MacLib:Window(Settings)
 				local inputPath = nil
 				local selectedConfig = nil
 				
-				local listedConfigs = listfiles(Path) or nil
-
+				local listedConfigs = isfile(Path) and listfiles(Path) or nil
+			
 				configSection:Input({
 					Name = "Config Name",
 					Placeholder = "Name",
@@ -4542,7 +4542,7 @@ function MacLib:Window(Settings)
 							Description = string.format("Created config %q", inputPath),
 						})
 						
-						listedConfigs = listfiles(Path) or nil
+						listedConfigs = isfile(Path) and listfiles(Path) or nil
 						
 						configSelection:InsertOptions(listedConfigs)
 						configSelection:UpdateSelection(nil)
@@ -4588,7 +4588,7 @@ function MacLib:Window(Settings)
 				configSection:Button({
 					Name = "Refresh Config List",
 					Callback = function()
-						listedConfigs = listfiles(Path) or nil
+						listedConfigs = isfile(Path) and listfiles(Path) or nil
 
 						configSelection:InsertOptions(listedConfigs)
 						configSelection:UpdateSelection(nil)
