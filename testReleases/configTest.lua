@@ -4459,7 +4459,7 @@ function MacLib:Window(Settings)
 				end
 				
 				function SectionFunctions:InsertConfigManager()
-					local configSection = SectionFunctions
+					local configSection = self
 					local inputPath = nil
 					local selectedConfig = nil
 
@@ -5270,7 +5270,8 @@ function MacLib:Window(Settings)
 	end
 	
 	function MacLib:SetFolder(Folder)
-		MacLib.Folder = Folder
+		MacLib.Folder = Folder;
+		BuildFolderTree()
 	end
 	
 	function MacLib:SaveConfig(Path)
