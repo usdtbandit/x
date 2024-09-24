@@ -1,4 +1,4 @@
-local MacLib = { Options = {} }
+local MacLib = { Options = {}, Folder = "Maclib" }
 
 --// Services
 local TweenService = game:GetService("TweenService")
@@ -4498,7 +4498,7 @@ function MacLib:Window(Settings)
 				SelectCurrentTab()
 			end
 			
-			function TabFunctions:InsertConfigSection(Path, Extension, Side)
+			function TabFunctions:InsertConfigSection(Side)
 				local configSection = TabFunctions:Section({ Side = Side })
 				local inputPath = nil
 				local selectedConfig = nil
@@ -4510,8 +4510,7 @@ function MacLib:Window(Settings)
 					Placeholder = "Name",
 					AcceptedCharacters = "All",
 					Callback = function(input)
-						inputPath = Path .. "/" .. input .. "." .. Extension
-						print(inputPath)
+						inputPath = input
 					end,
 				})
 				
@@ -5262,10 +5261,30 @@ function MacLib:Window(Settings)
 		},
 	}
 	
+	local function BuildFolderTree()
+		local paths = {
+			MacLib.Folder,
+			MacLib.Folder .. "/settings"
+		}
+
+		for i = 1, #paths do
+			local str = paths[i]
+			if not isfolder(str) then
+				makefolder(str)
+			end
+		end
+	end
+	
+	function MacLib:SetFolder(Folder)
+		MacLib.Folder = Folder
+	end
+	
 	function MacLib:SaveConfig(Path)
-		if not Path then
+		--[=[if not Path then
 			return false, [[Path not specified.]]
 		end
+		
+		Path = Path .. "/settings"
 		
 		local configData = {
 			savedObjects = {}
@@ -5283,11 +5302,37 @@ function MacLib:Window(Settings)
 		end
 
 		writefile(Path, file)
+		return true]=]
+		
+		
+		if (not Path) then
+			return false, "Please select a config file."
+		end
+
+		local fullPath = MacLib.Folder .. "/settings/" .. Path .. ".json"
+
+		local data = {
+			objects = {}
+		}
+
+		for flag, option in next, MacLib.Options do
+			if not ClassParser[option.Class] then continue end
+			if option.IgnoreConfig then continue end
+
+			table.insert(data.objects, ClassParser[option.Class].Save(flag))
+		end	
+
+		local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+		if not success then
+			return false, "Unable to encode into JSON data"
+		end
+
+		writefile(fullPath, encoded)
 		return true
 	end
 	
 	function MacLib:LoadConfig(Path)
-		if not Path then
+		--[=[if not Path then
 			return false, [[Path not specified.]]
 		end
 
@@ -5302,6 +5347,26 @@ function MacLib:Window(Settings)
 			if ClassParser[data.Class] then
 				task.spawn(function() 
 					ClassParser[data.Class].Load(flag, data) 
+				end)
+			end
+		end
+
+		return true]=]
+		
+		if (not Path) then
+			return false, "Please select a config file."
+		end
+
+		local file = self.Folder .. "/settings/" .. Path .. ".json"
+		if not isfile(file) then return false, "Invalid file" end
+
+		local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+		if not success then return false, "Unable to decode JSON data." end
+
+		for _, option in next, decoded.objects do
+			if ClassParser[option.Class] then
+				task.spawn(function() 
+					ClassParser[option.Class].Load(option.flag, option) 
 				end)
 			end
 		end
@@ -5569,7 +5634,8 @@ function MacLib:Demo()
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
 	
-	tabs.Settings:InsertConfigSection("Maclib/settings", "json", "Left")
+	MacLib:SetFolder("Maclib")
+	tabs.Settings:InsertConfigSection("Left")
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
