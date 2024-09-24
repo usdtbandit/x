@@ -4457,6 +4457,107 @@ function MacLib:Window(Settings)
 
 					return SpacerFunctions
 				end
+				
+				function SectionFunctions:InsertConfigManager()
+					local configSection = SectionFunctions
+					local inputPath = nil
+					local selectedConfig = nil
+
+					configSection:Input({
+						Name = "Config Name",
+						Placeholder = "Name",
+						AcceptedCharacters = "All",
+						Callback = function(input)
+							inputPath = input
+						end,
+					})
+
+					local configSelection = configSection:Dropdown({
+						Name = "Select Config",
+						Multi = false,
+						Required = false,
+						Options = MacLib:RefreshConfigList(),
+						Callback = function(Value)
+							selectedConfig = Value
+						end,
+					})
+
+					configSection:Button({
+						Name = "Create Config",
+						Callback = function()
+							if not inputPath or string.gsub(inputPath, " ", "") == "" then
+								WindowFunctions:Notify({
+									Title = "Interface",
+									Description = "Config name cannot be empty."
+								})
+								return
+							end
+
+							local success, returned = MacLib:SaveConfig(inputPath)
+							if not success then
+								WindowFunctions:Notify({
+									Title = "Interface",
+									Description = "Unable to save config, return error: " .. returned
+								})
+							end
+
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = string.format("Created config %q", inputPath),
+							})
+
+							configSelection:InsertOptions(MacLib:RefreshConfigList())
+							configSelection:UpdateSelection(nil)
+						end,
+					})
+
+					configSection:Button({
+						Name = "Load Config",
+						Callback = function()
+							local success, returned = MacLib:LoadConfig(configSelection.Value)
+							if not success then
+								WindowFunctions:Notify({
+									Title = "Interface",
+									Description = "Unable to load config, return error: " .. returned
+								})
+								return
+							end
+
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = string.format("Loaded config %q", configSelection.Value),
+							})
+						end,
+					})
+
+					configSection:Button({
+						Name = "Overwrite Config",
+						Callback = function()
+							local success, returned = MacLib:LoadConfig(configSelection.Value)
+							if not success then
+								WindowFunctions:Notify({
+									Title = "Interface",
+									Description = "Unable to overwrite config, return error: " .. returned
+								})
+								return
+							end
+
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = string.format("Overwrote config %q", configSelection.Value),
+							})
+						end,
+					})
+
+					configSection:Button({
+						Name = "Refresh Config List",
+						Callback = function()
+							configSelection:InsertOptions(MacLib:RefreshConfigList())
+							configSelection:UpdateSelection(nil)
+						end,
+					})
+				end
+				
 				return SectionFunctions
 			end
 
@@ -4497,118 +4598,11 @@ function MacLib:Window(Settings)
 			function TabFunctions:Select()
 				SelectCurrentTab()
 			end
-			
-			function TabFunctions:InsertConfigSection(Side)
-				local configSection = TabFunctions:Section({ Side = Side })
-				local inputPath = nil
-				local selectedConfig = nil
-				
-				local listedConfigs = isfile(Path) and listfiles(Path) or nil
-			
-				configSection:Input({
-					Name = "Config Name",
-					Placeholder = "Name",
-					AcceptedCharacters = "All",
-					Callback = function(input)
-						inputPath = input
-					end,
-				})
-				
-				local configSelection = configSection:Dropdown({
-					Name = "Select Config",
-					Multi = false,
-					Required = false,
-					Options = listedConfigs,
-					Callback = function(Value)
-						selectedConfig = Value
-					end,
-				})
-				
-				configSection:Button({
-					Name = "Save Config",
-					Callback = function()
-						if not inputPath or string.gsub(inputPath, " ", "") == "" then
-							WindowFunctions:Notify({
-								Title = "Interface",
-								Description = "Config name cannot be empty."
-							})
-							return
-						end
-						
-						local success, returned = MacLib:SaveConfig(inputPath)
-						if not success then
-							WindowFunctions:Notify({
-								Title = "Interface",
-								Description = "Unable to save config, return error: " .. returned
-							})
-						end
-						
-						WindowFunctions:Notify({
-							Title = "Interface",
-							Description = string.format("Created config %q", inputPath),
-						})
-						
-						listedConfigs = isfile(Path) and listfiles(Path) or nil
-						print(listedConfigs)
-						
-						configSelection:InsertOptions(listedConfigs)
-						configSelection:UpdateSelection(nil)
-					end,
-				})
-				
-				configSection:Button({
-					Name = "Load Config",
-					Callback = function()
-						local success, returned = MacLib:LoadConfig(configSelection.Value)
-						if not success then
-							WindowFunctions:Notify({
-								Title = "Interface",
-								Description = "Unable to load config, return error: " .. returned
-							})
-							return
-						end
-
-						WindowFunctions:Notify({
-							Title = "Interface",
-							Description = string.format("Loaded config %q", configSelection.Value),
-						})
-					end,
-				})
-				
-				configSection:Button({
-					Name = "Overwrite Config",
-					Callback = function()
-						local success, returned = MacLib:LoadConfig(configSelection.Value)
-						if not success then
-							WindowFunctions:Notify({
-								Title = "Interface",
-								Description = "Unable to overwrite config, return error: " .. returned
-							})
-							return
-						end
-
-						WindowFunctions:Notify({
-							Title = "Interface",
-							Description = string.format("Overwrote config %q", configSelection.Value),
-						})
-					end,
-				})
-				
-				configSection:Button({
-					Name = "Refresh Config List",
-					Callback = function()
-						listedConfigs = isfile(Path) and listfiles(Path) or nil
-
-						configSelection:InsertOptions(listedConfigs)
-						configSelection:UpdateSelection(nil)
-					end,
-				})
-			end
 
 			tabs[tabSwitcher] = elements1
 			return TabFunctions
 		end
-
+	
 		return SectionFunctions
 	end
 
@@ -5373,6 +5367,34 @@ function MacLib:Window(Settings)
 
 		return true
 	end
+	
+	function MacLib:RefreshConfigList()
+		local list = listfiles(MacLib.Folder .. "/settings")
+
+		local out = {}
+		for i = 1, #list do
+			local file = list[i]
+			if file:sub(-5) == ".json" then
+				local pos = file:find(".json", 1, true)
+				local start = pos
+
+				local char = file:sub(pos, pos)
+				while char ~= "/" and char ~= "\\" and char ~= "" do
+					pos = pos - 1
+					char = file:sub(pos, pos)
+				end
+
+				if char == "/" or char == "\\" then
+					local name = file:sub(pos + 1, start - 1)
+					if name ~= "options" then
+						table.insert(out, name)
+					end
+				end
+			end
+		end
+
+		return out
+	end
 
 	macLib.Enabled = false
 	
@@ -5450,6 +5472,7 @@ function MacLib:Demo()
 	
 	local sections = {
 		MainSection1 = tabs.Main:Section({ Side = "Left" }),
+		SettingsSection1 = tabs.Main:Section({ Side = "Left" }),
 	}
 
 	sections.MainSection1:Header({
@@ -5635,7 +5658,7 @@ function MacLib:Demo()
 	})
 	
 	MacLib:SetFolder("Maclib")
-	tabs.Settings:InsertConfigSection("Left")
+	sections.SettingsSection1:InsertConfigManager()
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
