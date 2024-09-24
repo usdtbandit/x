@@ -5277,7 +5277,9 @@ function MacLib:Window(Settings)
 			table.insert(configData.savedObjects, ClassParser[data.Class].Save(flag))
 		end	
 		
-		print("sobjects: ", configData.savedObjects)
+		for _,v in pairs(configData.savedObjects) do
+			print("sobject new: ", v)
+		end
 
 		local success, file = pcall(function() return HttpService:JSONEncode(configData) end)
 		if not success then
