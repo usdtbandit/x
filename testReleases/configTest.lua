@@ -5199,60 +5199,60 @@ function MacLib:Window(Settings)
 	
 	local ClassParser = {
 		Toggle = {
-			Save = function(Flag)
+			["Save"] = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].State}
 			end,
-			Load = function(Flag, data)
+			["Load"] = function(Flag, data)
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:UpdateState(data.value)
 				end
 			end
 		},
 		Slider = {
-			Save = function(Flag)
+			["Save"] = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Value}
 			end,
-			Load = function(Flag, data)
+			["Load"] = function(Flag, data)
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:UpdateValue(data.value)
 				end
 			end
 		},
 		Input = {
-			Save = function(Flag)
+			["Save"] = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Text}
 			end,
-			Load = function(Flag, data)
+			["Load"] = function(Flag, data)
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:Bind(data.value)
 				end
 			end
 		},
 		Keybind = {
-			Save = function(Flag)
+			["Save"] = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Bind}
 			end,
-			Load = function(Flag, data)
+			["Load"] = function(Flag, data)
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:Bind(data.value)
 				end
 			end
 		},
 		Dropdown = {
-			Save = function(Flag)
+			["Save"] = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Value}
 			end,
-			Load = function(Flag, data)
+			["Load"] = function(Flag, data)
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:UpdateSelection(data.value)
 				end
 			end
 		},
 		Colorpicker = {
-			Save = function(Flag)
+			["Save"] = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Color}
 			end,
-			Load = function(Flag, data)
+			["Load"] = function(Flag, data)
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:SetColor(data.value)
 				end
