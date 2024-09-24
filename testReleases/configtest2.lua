@@ -5276,15 +5276,15 @@ function MacLib:Window(Settings)
 			
 			table.insert(configData.savedObjects, ClassParser[data.Class].Save(flag))
 		end	
-		
-		for _,v in pairs(configData.savedObjects) do
-			print("sobject new: ", v)
-		end
 
 		local success, file = pcall(function() return HttpService:JSONEncode(configData) end)
 		if not success then
 			return false, [[Unable to process config data.]]
 		end
+		
+		local success, file = pcall(function() return HttpService:JSONEncode(readfile(file)) end)
+		
+		print("jbasdjkhasdjhkasdkjhasdkjhdas file = ",file)
 
 		writefile(Path, file)
 		return true
