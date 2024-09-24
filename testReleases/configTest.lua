@@ -5273,12 +5273,13 @@ function MacLib:Window(Settings)
 
 		for flag, data in next, MacLib.Options do
 			if data.IgnoreConfig then continue end
-			print(data.Class)
 			
 			table.insert(configData.savedObjects, ClassParser[data.Class].Save(flag))
 		end	
 		
-		local success, file = pcall(HttpService.JSONEncode, HttpService, configData)
+		print("sobjects: ", configData.savedObjects)
+
+		local success, file = pcall(function() return HttpService:JSONEncode(configData) end)
 		if not success then
 			return false, [[Unable to process config data.]]
 		end
@@ -5294,8 +5295,10 @@ function MacLib:Window(Settings)
 
 		if not isfile(Path) then return false, [[Invalid path.]] end
 
-		local success, file = pcall(HttpService.JSONDecode, HttpService, readfile(Path))
-		if not success then return false, [[Unable to process config data.]] end
+		local success, file = pcall(function() return HttpService:JSONEncode(readfile(Path)) end)
+		if not success then 
+			return false, [[Unable to process config data.]] 
+		end
 
 		for flag, data in next, file.savedObjects do
 			if ClassParser[data.Class] then
