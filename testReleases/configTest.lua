@@ -4566,6 +4566,7 @@ function MacLib:Window(Settings)
 								Title = "Interface",
 								Description = "Unable to load config, return error: " .. returned
 							})
+							return
 						end
 
 						WindowFunctions:Notify({
@@ -4584,6 +4585,7 @@ function MacLib:Window(Settings)
 								Title = "Interface",
 								Description = "Unable to overwrite config, return error: " .. returned
 							})
+							return
 						end
 
 						WindowFunctions:Notify({
@@ -5264,18 +5266,22 @@ function MacLib:Window(Settings)
 		if not Path then
 			return false, [[Path not specified.]]
 		end
-		
+
 		local _data = {
 			savedObjects = {}
 		}
 
 		for flag, data in next, MacLib.Options do
 			if data.IgnoreConfig then continue end
-			
-			table.insert(_data.savedObjects, ClassParser[data.Class].Save(flag))
+
+			if ClassParser[data.Class] and ClassParser[data.Class].Save then
+				table.insert(_data.savedObjects, ClassParser[data.Class].Save(flag))
+			else
+				warn("Save function missing for class: " .. tostring(data.Class))
+			end
 		end	
-		
-		local success, file = pcall(HttpService.JSONEncode, HttpService, _data)
+
+		local success, file = pcall(function() return HttpService:JSONEncode(_data) end)
 		if not success then
 			return false, [[Unable to process config data.]]
 		end
