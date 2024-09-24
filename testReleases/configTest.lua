@@ -2772,9 +2772,11 @@ function MacLib:Window(Settings)
 							dropdown.Size = UDim2.new(1, 0, 0, CalculateDropdownSize())
 						end
 					end
-
-					for i, v in pairs(Settings.Options) do
-						addOption(i, v)
+					
+					if Settings.Options then
+						for i, v in pairs(Settings.Options) do
+							addOption(i, v)
+						end
 					end
 					
 					function DropdownFunctions:UpdateName(New)
@@ -2784,6 +2786,7 @@ function MacLib:Window(Settings)
 						dropdown.Visible = State
 					end
 					function DropdownFunctions:UpdateSelection(newSelection)
+						if not newSelection then return end
 						if type(newSelection) == "string" then
 							for option, data in pairs(OptionObjs) do
 								local isSelected = option == newSelection
@@ -2797,6 +2800,7 @@ function MacLib:Window(Settings)
 						end
 					end
 					function DropdownFunctions:InsertOptions(newOptions)
+						if not newOptions then return end
 						Settings.Options = newOptions
 						for i, v in pairs(newOptions) do
 							addOption(i, v)
@@ -2825,6 +2829,7 @@ function MacLib:Window(Settings)
 					end
 					
 					function DropdownFunctions:RemoveOptions(remove)
+						if not remove then return end
 						for _, optionName in ipairs(remove) do
 							local optionData = OptionObjs[optionName]
 
@@ -2846,6 +2851,7 @@ function MacLib:Window(Settings)
 						end
 					end
 					function DropdownFunctions:IsOption(optionName)
+						if not optionName then return end
 						return OptionObjs[optionName] ~= nil
 					end
 					
