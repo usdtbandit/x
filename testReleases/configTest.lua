@@ -4511,6 +4511,7 @@ function MacLib:Window(Settings)
 					AcceptedCharacters = "All",
 					Callback = function(input)
 						inputPath = Path .. input .. "." .. Extension
+						print(inputPath)
 					end,
 				})
 				
@@ -5279,6 +5280,7 @@ function MacLib:Window(Settings)
 		end
 
 		writefile(Path, file)
+		return true
 	end
 	
 	function MacLib:LoadConfig(Path)
