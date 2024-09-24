@@ -4502,7 +4502,7 @@ function MacLib:Window(Settings)
 					Placeholder = "Name",
 					AcceptedCharacters = "All",
 					Callback = function(input)
-						inputPath = Path .. input .. Extension
+						inputPath = Path .. input .. "." .. Extension
 					end,
 				})
 				
