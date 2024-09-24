@@ -5270,7 +5270,7 @@ function MacLib:Window(Settings)
 		for flag, data in next, MacLib.Options do
 			if data.IgnoreConfig then continue end
 			
-			table.insert(_data.objects, ClassParser[data.Class].Save(flag))
+			table.insert(_data.savedObjects, ClassParser[data.Class].Save(flag))
 		end	
 		
 		local success, file = pcall(HttpService.JSONEncode, HttpService, _data)
