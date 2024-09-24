@@ -4566,6 +4566,7 @@ function MacLib:Window(Settings)
 								Title = "Interface",
 								Description = "Unable to load config, return error: " .. returned
 							})
+							return
 						end
 
 						WindowFunctions:Notify({
@@ -4584,6 +4585,7 @@ function MacLib:Window(Settings)
 								Title = "Interface",
 								Description = "Unable to overwrite config, return error: " .. returned
 							})
+							return
 						end
 
 						WindowFunctions:Notify({
@@ -5198,7 +5200,7 @@ function MacLib:Window(Settings)
 	end
 	
 	local ClassParser = {
-		Toggle = {
+		["Toggle"] = {
 			Save = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].State}
 			end,
@@ -5208,7 +5210,7 @@ function MacLib:Window(Settings)
 				end
 			end
 		},
-		Slider = {
+		["Slider"] = {
 			Save = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Value}
 			end,
@@ -5218,7 +5220,7 @@ function MacLib:Window(Settings)
 				end
 			end
 		},
-		Input = {
+		["Input"] = {
 			Save = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Text}
 			end,
@@ -5228,7 +5230,7 @@ function MacLib:Window(Settings)
 				end
 			end
 		},
-		Keybind = {
+		["Keybind"] = {
 			Save = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Bind}
 			end,
@@ -5238,7 +5240,7 @@ function MacLib:Window(Settings)
 				end
 			end
 		},
-		Dropdown = {
+		["Dropdown"] = {
 			Save = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Value}
 			end,
@@ -5248,7 +5250,7 @@ function MacLib:Window(Settings)
 				end
 			end
 		},
-		Colorpicker = {
+		["Colorpicker"] = {
 			Save = function(Flag)
 				return {flag = Flag, value = MacLib.Options[Flag].Color}
 			end,
@@ -5265,17 +5267,21 @@ function MacLib:Window(Settings)
 			return false, [[Path not specified.]]
 		end
 		
-		local _data = {
+		local configData = {
 			savedObjects = {}
 		}
 
 		for flag, data in next, MacLib.Options do
 			if data.IgnoreConfig then continue end
 			
-			table.insert(_data.savedObjects, ClassParser[data.Class].Save(flag))
+			table.insert(configData.savedObjects, ClassParser[data.Class].Save(flag))
 		end	
 		
-		local success, file = pcall(HttpService.JSONEncode, HttpService, _data)
+		for _,v in pairs(configData.savedObjects) do
+			print("sobject new: ", v)
+		end
+
+		local success, file = pcall(function() return HttpService:JSONEncode(configData) end)
 		if not success then
 			return false, [[Unable to process config data.]]
 		end
@@ -5291,8 +5297,10 @@ function MacLib:Window(Settings)
 
 		if not isfile(Path) then return false, [[Invalid path.]] end
 
-		local success, file = pcall(HttpService.JSONDecode, HttpService, readfile(Path))
-		if not success then return false, [[Unable to process config data.]] end
+		local success, file = pcall(function() return HttpService:JSONEncode(readfile(Path)) end)
+		if not success then 
+			return false, [[Unable to process config data.]] 
+		end
 
 		for flag, data in next, file.savedObjects do
 			if ClassParser[data.Class] then
