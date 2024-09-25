@@ -5227,7 +5227,7 @@ function MacLib:Window(Settings)
 		},
 		["Keybind"] = {
 			Save = function(Flag, data)
-				return {type = "Keybind", flag = Flag, bind = data.Bind.Name}
+				return {type = "Keybind", flag = Flag, bind = typeof(data.text) == "Enum" and data.Bind.Name}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
