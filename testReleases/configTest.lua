@@ -5309,7 +5309,7 @@ function MacLib:Window(Settings)
 			return false, "Please select a config file."
 		end
 
-		local file = self.Folder .. "/settings/" .. Path .. ".json"
+		local file = MacLib.Folder .. "/settings/" .. Path .. ".json"
 		if not isfile(file) then return false, "Invalid file" end
 
 		local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
