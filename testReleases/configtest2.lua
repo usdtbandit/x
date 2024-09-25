@@ -1993,7 +1993,7 @@ function MacLib:Window(Settings)
 						slider.Visible = State
 					end
 					function SliderFunctions:UpdateValue(Value)
-						SetValue(Value, true)
+						SetValue(tonumber(Value), true)
 					end
 					function SliderFunctions:GetValue()
 						return finalValue
@@ -2162,6 +2162,7 @@ function MacLib:Window(Settings)
 						local inputText = InputBox.Text
 						local filteredText = AcceptedCharacters(inputText)
 						InputBox.Text = filteredText
+						InputFunctions.Text = filteredText
 						task.spawn(function()
 							if InputFunctions.Callback then
 								InputFunctions.Callback(filteredText)
@@ -2787,7 +2788,12 @@ function MacLib:Window(Settings)
 					end
 					function DropdownFunctions:UpdateSelection(newSelection)
 						if not newSelection then return end
-						if type(newSelection) == "string" then
+						if type(newSelection) == "number" then
+							for option, data in pairs(OptionObjs) do
+								local isSelected = data.Index == newSelection
+								Toggle(option, isSelected)
+							end
+						elseif type(newSelection) == "string" then
 							for option, data in pairs(OptionObjs) do
 								local isSelected = option == newSelection
 								Toggle(option, isSelected)
@@ -5195,17 +5201,25 @@ function MacLib:Window(Settings)
 	local ClassParser = {
 		["Toggle"] = {
 			Save = function(Flag, data)
-				return {flag = Flag, value = data.State}
+				return {
+					type = "Toggle", 
+					flag = Flag, 
+					state = data.State
+				}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:UpdateState(data.value)
+					MacLib.Options[Flag]:UpdateState(data.state)
 				end
 			end
 		},
 		["Slider"] = {
 			Save = function(Flag, data)
-				return {flag = Flag, value = data.Value}
+				return {
+					type = "Slider", 
+					flag = Flag, 
+					value = tostring(data.Value)
+				}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5215,27 +5229,39 @@ function MacLib:Window(Settings)
 		},
 		["Input"] = {
 			Save = function(Flag, data)
-				return {flag = Flag, value = data.Text}
+				return {
+					type = "Input", 
+					flag = Flag, 
+					text = data.Text
+				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:Bind(data.value)
+				if MacLib.Options[Flag] and type(data.text) == "string" then
+					MacLib.Options[Flag]:UpdateText(data.text)
 				end
 			end
 		},
 		["Keybind"] = {
 			Save = function(Flag, data)
-				return {flag = Flag, value = data.Bind}
+				return {
+					type = "Keybind", 
+					flag = Flag, 
+					bind = (typeof(data.Bind) == "EnumItem" and data.Bind.Name) or nil
+				}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:Bind(data.value)
+					MacLib.Options[Flag]:Bind(Enum.KeyCode[data.bind])
 				end
 			end
 		},
 		["Dropdown"] = {
 			Save = function(Flag, data)
-				return {flag = Flag, value = data.Value}
+				return {
+					type = "Dropdown", 
+					flag = Flag, 
+					value = data.Value
+				}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
@@ -5245,14 +5271,33 @@ function MacLib:Window(Settings)
 		},
 		["Colorpicker"] = {
 			Save = function(Flag, data)
-				return {flag = Flag, value = data.Color}
+				local function Color3ToHex(color)
+					return string.format("#%02X%02X%02X", math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255))
+				end
+
+				return {
+					type = "Colorpicker", 
+					flag = Flag, 
+					color = Color3ToHex(data.Color),
+					alpha = data.Alpha
+				}
 			end,
 			Load = function(Flag, data)
+				local function HexToColor3(hex)
+					local r = tonumber(hex:sub(2, 3), 16) / 255
+					local g = tonumber(hex:sub(4, 5), 16) / 255
+					local b = tonumber(hex:sub(6, 7), 16) / 255
+					return Color3.new(r, g, b)
+				end
+
 				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:SetColor(data.value)
+					MacLib.Options[Flag]:SetColor(HexToColor3(data.color)) 
+					if data.alpha then
+						MacLib.Options[Flag]:SetAlpha(data.alpha)
+					end
 				end
 			end
-		},
+		}
 	}
 	
 	local function BuildFolderTree()
@@ -5306,16 +5351,16 @@ function MacLib:Window(Settings)
 			return false, "Please select a config file."
 		end
 
-		local file = self.Folder .. "/settings/" .. Path .. ".json"
+		local file = MacLib.Folder .. "/settings/" .. Path .. ".json"
 		if not isfile(file) then return false, "Invalid file" end
 
 		local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
 		if not success then return false, "Unable to decode JSON data." end
 
 		for _, option in next, decoded.objects do
-			if ClassParser[option.Class] then
+			if ClassParser[option.type] then
 				task.spawn(function() 
-					ClassParser[option.Class].Load(option.flag, option) 
+					ClassParser[option.type].Load(option.flag, option) 
 				end)
 			end
 		end
@@ -5587,7 +5632,7 @@ function MacLib:Demo()
 	sections.MainSection1:Button({
 		Name = "Update Selection",
 		Callback = function()
-			Dropdown:UpdateSelection(4)
+			Dropdown:UpdateSelection("Option 4")
 			MultiDropdown:UpdateSelection({"Option 2", "Option 5"})
 		end,
 	})
