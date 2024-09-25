@@ -55,11 +55,12 @@ local tabGroups = {
 }
 
 local tabs = {
-	Main = tabGroups.TabGroup1:Tab({ Name = "Demo", Image = "rbxassetid://18821914323" })
+	Main = tabGroups.TabGroup1:Tab({ Name = "Demo", Image = "rbxassetid://18821914323" }),
+	Settings = tabGroups.TabGroup1:Tab({ Name = "Settings", Image = "rbxassetid://10734950309" })
 }
 
 local sections = {
-	MainSection1 = tabs.Main:Section({ Side = "Left" })
+	MainSection1 = tabs.Main:Section({ Side = "Left" }),
 }
 
 sections.MainSection1:Header({
@@ -100,7 +101,7 @@ sections.MainSection1:Input({
 	onChanged = function(input)
 		print("Input is now ".. input)
 	end,
-})
+}, "Input")
 
 sections.MainSection1:Slider({
 	Name = "Slider",
@@ -111,7 +112,7 @@ sections.MainSection1:Slider({
 	Callback = function(Value)
 		print("Changed to ".. Value)
 	end,
-})
+}, "Slider")
 
 sections.MainSection1:Toggle({
 	Name = "Toggle",
@@ -122,7 +123,7 @@ sections.MainSection1:Toggle({
 			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
 		})
 	end,
-})
+}, "Toggle")
 
 sections.MainSection1:Keybind({
 	Name = "Keybind",
@@ -140,7 +141,7 @@ sections.MainSection1:Keybind({
 			Lifetime = 3
 		})
 	end,
-})
+}, "Keybind")
 
 sections.MainSection1:Colorpicker({
 	Name = "Colorpicker",
@@ -148,7 +149,7 @@ sections.MainSection1:Colorpicker({
 	Callback = function(color)
 		print("Color: ", color)
 	end,
-})
+}, "Colorpicker")
 
 local alphaColorPicker = sections.MainSection1:Colorpicker({
 	Name = "Transparency Colorpicker",
@@ -157,7 +158,7 @@ local alphaColorPicker = sections.MainSection1:Colorpicker({
 	Callback = function(color, alpha)
 		print("Color: ", color, " Alpha: ", alpha)
 	end,
-})
+}, "TransparencyColorpicker")
 
 local rainbowActive
 local rainbowConnection
@@ -181,7 +182,7 @@ sections.MainSection1:Toggle({
 			end
 		end
 	end,
-})
+}, "RainbowToggle")
 
 local optionTable = {}
 
@@ -199,7 +200,7 @@ local Dropdown = sections.MainSection1:Dropdown({
 	Callback = function(Value)
 		print("Dropdown changed: ".. Value)
 	end,
-})
+}, "Dropdown")
 
 local MultiDropdown = sections.MainSection1:Dropdown({
 	Name = "Multi Dropdown",
@@ -215,12 +216,12 @@ local MultiDropdown = sections.MainSection1:Dropdown({
 		end
 		print("Mutlidropdown changed:", table.concat(Values, ", "))
 	end,
-})
+}, "MultiDropdown")
 
 sections.MainSection1:Button({
 	Name = "Update Selection",
 	Callback = function()
-		Dropdown:UpdateSelection(4)
+		Dropdown:UpdateSelection("Option 4")
 		MultiDropdown:UpdateSelection({"Option 2", "Option 5"})
 	end,
 })
@@ -243,6 +244,9 @@ sections.MainSection1:Label({
 sections.MainSection1:SubLabel({
 	Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 })
+
+MacLib:SetFolder("Maclib")
+tabs.Settings:InsertConfigSection("Left")
 
 Window.onUnloaded(function()
 	print("Unloaded!")
