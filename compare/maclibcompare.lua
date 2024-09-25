@@ -1,4 +1,4 @@
-local MacLib = {}
+local MacLib = { Options = {}, Folder = "Maclib" }
 
 --// Services
 local TweenService = game:GetService("TweenService")
@@ -19,6 +19,7 @@ local hasGlobalSetting
 local tabs = {}
 local currentTabInstance = nil
 local tabIndex = 0
+local unloaded = false
 
 local assets = {
 	interFont = "rbxassetid://12187365364",
@@ -771,7 +772,7 @@ function MacLib:Window(Settings)
 		Enum.FontStyle.Normal
 	)
 	currentTab.RichText = true
-	currentTab.Text = "Tab"
+	currentTab.Text = ""
 	currentTab.RichText = true
 	currentTab.TextColor3 = Color3.fromRGB(255, 255, 255)
 	currentTab.TextSize = 15
@@ -889,7 +890,7 @@ function MacLib:Window(Settings)
 
 	for _,v in pairs(game:GetService("Lighting"):GetChildren()) do
 		if not v:IsA("DepthOfFieldEffect") and v:HasTag(".") then
-			DepthOfField = Instance.new('DepthOfFieldEffect', game:GetService('Lighting'))
+			DepthOfField = Instance.new('DepthOfFieldEffect')
 			DepthOfField.FarIntensity = 0
 			DepthOfField.FocusDistance = 51.6
 			DepthOfField.InFocusRadius = 50
@@ -902,7 +903,7 @@ function MacLib:Window(Settings)
 	end
 
 	if not DepthOfField then
-		DepthOfField = Instance.new('DepthOfFieldEffect', game:GetService('Lighting'))
+		DepthOfField = Instance.new('DepthOfFieldEffect')
 		DepthOfField.FarIntensity = 0
 		DepthOfField.FocusDistance = 51.6
 		DepthOfField.InFocusRadius = 50
@@ -1044,12 +1045,16 @@ function MacLib:Window(Settings)
 	end
 
 	local function UpdateOrientation(fetchProps)
-		if not IsVisible(frame) or not acrylicBlur then
+		if not IsVisible(frame) or not acrylicBlur or unloaded then
 			for _, pt in pairs(parts) do
 				pt.Parent = nil
 				DepthOfField.Enabled = false
+				DepthOfField.Parent = nil
 			end
 			return
+		end
+		if not DepthOfField.Parent then
+			DepthOfField.Parent = game:GetService("Lighting")
 		end
 		DepthOfField.Enabled = true
 		local properties = {
@@ -1243,11 +1248,6 @@ function MacLib:Window(Settings)
 		function GlobalSettingFunctions:UpdateState(NewState)
 			Toggle(NewState)
 			toggled = NewState
-			task.spawn(function()
-				if Settings.Callback then
-					Settings.Callback(toggled)
-				end
-			end)
 		end
 
 		return GlobalSettingFunctions
@@ -1599,8 +1599,8 @@ function MacLib:Window(Settings)
 					return ButtonFunctions
 				end
 
-				function SectionFunctions:Toggle(Settings)
-					local ToggleFunctions = {}
+				function SectionFunctions:Toggle(Settings, Flag)
+					local ToggleFunctions = { IgnoreConfig = false, Class = "Toggle", Callback = Settings.Callback }
 					local toggle = Instance.new("Frame")
 					toggle.Name = "Toggle"
 					toggle.AutomaticSize = Enum.AutomaticSize.Y
@@ -1719,8 +1719,8 @@ function MacLib:Window(Settings)
 					local function Toggle()
 						togglebool = not togglebool
 						ToggleState(togglebool)
-						if Settings.Callback then
-							Settings.Callback(togglebool)
+						if ToggleFunctions.Callback then
+							ToggleFunctions.Callback(togglebool)
 						end
 					end
 
@@ -1732,9 +1732,6 @@ function MacLib:Window(Settings)
 					function ToggleFunctions:UpdateState(State)
 						togglebool = State
 						ToggleState(togglebool)
-						if Settings.Callback then
-							Settings.Callback(togglebool)
-						end
 					end
 					function ToggleFunctions:GetState()
 						return togglebool
@@ -1745,11 +1742,15 @@ function MacLib:Window(Settings)
 					function ToggleFunctions:SetVisibility(State)
 						toggle.Visible = State
 					end
+					
+					if Flag then
+						MacLib.Options[Flag] = ToggleFunctions
+					end
 					return ToggleFunctions
 				end
 
-				function SectionFunctions:Slider(Settings)
-					local SliderFunctions = {}
+				function SectionFunctions:Slider(Settings, Flag)
+					local SliderFunctions = { IgnoreConfig = false, Class = "Slider", Callback = Settings.Callback }
 					local slider = Instance.new("Frame")
 					slider.Name = "Slider"
 					slider.AutomaticSize = Enum.AutomaticSize.Y
@@ -1921,8 +1922,8 @@ function MacLib:Window(Settings)
 
 						if not ignorecallback then
 							task.spawn(function()
-								if Settings.Callback then
-									Settings.Callback(finalValue)
+								if SliderFunctions.Callback then
+									SliderFunctions.Callback(finalValue)
 								end
 							end)
 						end
@@ -1992,16 +1993,20 @@ function MacLib:Window(Settings)
 						slider.Visible = State
 					end
 					function SliderFunctions:UpdateValue(Value)
-						SetValue(Value)
+						SetValue(tonumber(Value), true)
 					end
 					function SliderFunctions:GetValue()
 						return finalValue
 					end
+					
+					if Flag then
+						MacLib.Options[Flag] = SliderFunctions
+					end
 					return SliderFunctions
 				end
 
-				function SectionFunctions:Input(Settings)
-					local InputFunctions = {}
+				function SectionFunctions:Input(Settings, Flag)
+					local InputFunctions = { IgnoreConfig = false, Class = "Input", Callback = Settings.Callback }
 					local input = Instance.new("Frame")
 					input.Name = "Input"
 					input.AutomaticSize = Enum.AutomaticSize.Y
@@ -2125,8 +2130,8 @@ function MacLib:Window(Settings)
 						local filteredText = AcceptedCharacters(inputText)
 						InputBox.Text = filteredText
 						task.spawn(function()
-							if Settings.Callback then
-								Settings.Callback(filteredText)
+							if InputFunctions.Callback then
+								InputFunctions.Callback(filteredText)
 							end
 						end)
 					end)
@@ -2154,13 +2159,25 @@ function MacLib:Window(Settings)
 						inputBox.PlaceholderText = Placeholder
 					end
 					function InputFunctions:UpdateText(Text)
-						inputBox.Text = Text
+						local inputText = InputBox.Text
+						local filteredText = AcceptedCharacters(inputText)
+						InputBox.Text = filteredText
+						InputFunctions.Text = filteredText
+						task.spawn(function()
+							if InputFunctions.Callback then
+								InputFunctions.Callback(filteredText)
+							end
+						end)
+					end
+					
+					if Flag then
+						MacLib.Options[Flag] = InputFunctions
 					end
 					return InputFunctions
 				end
 
-				function SectionFunctions:Keybind(Settings)
-					local KeybindFunctions = {}
+				function SectionFunctions:Keybind(Settings, Flag)
+					local KeybindFunctions = { IgnoreConfig = false, Class = "Keybind", Callback = Settings.Callback }
 					local keybind = Instance.new("Frame")
 					keybind.Name = "Keybind"
 					keybind.AutomaticSize = Enum.AutomaticSize.Y
@@ -2263,12 +2280,12 @@ function MacLib:Window(Settings)
 								KeybindFunctions.Bind = binded
 								binderBox.Text = inp.KeyCode.Name
 								binderBox:ReleaseFocus()
-								if Settings.onBinded then
-									Settings.onBinded(binded)
+								if KeybindFunctions.onBinded then
+									KeybindFunctions.onBinded(binded)
 								end
 							elseif inp.KeyCode == binded then
-								if Settings.Callback then
-									Settings.Callback(binded)
+								if KeybindFunctions.Callback then
+									KeybindFunctions.Callback(binded)
 								end
 							end
 						end
@@ -2276,6 +2293,7 @@ function MacLib:Window(Settings)
 					function KeybindFunctions:Bind(Key)
 						binded = Key
 						binderBox.Text = Key.Name
+						KeybindFunctions.Bind = binded
 					end
 					function KeybindFunctions:Unbind()
 						binded = nil
@@ -2290,11 +2308,15 @@ function MacLib:Window(Settings)
 					function KeybindFunctions:SetVisibility(State)
 						keybind.Visible = State
 					end
+					
+					if Flag then
+						MacLib.Options[Flag] = KeybindFunctions
+					end
 					return KeybindFunctions
 				end
 
-				function SectionFunctions:Dropdown(Settings)
-					local DropdownFunctions = {}
+				function SectionFunctions:Dropdown(Settings, Flag)
+					local DropdownFunctions = { IgnoreConfig = false, Class = "Dropdown", Callback = Settings.Callback }
 					local Selected = {}
 					local OptionObjs = {}
 
@@ -2735,13 +2757,13 @@ function MacLib:Window(Settings)
 									for _, opt in ipairs(Selected) do
 										Return[opt] = true
 									end
-									if Settings.Callback then
-										Settings.Callback(Return)
+									if DropdownFunctions.Callback then
+										DropdownFunctions.Callback(Return)
 									end
 
 								else
-									if newSelected and Settings.Callback then
-										Settings.Callback(Selected[1] or nil)
+									if newSelected and DropdownFunctions.Callback then
+										DropdownFunctions.Callback(Selected[1] or nil)
 									end
 								end
 							end)
@@ -2751,9 +2773,11 @@ function MacLib:Window(Settings)
 							dropdown.Size = UDim2.new(1, 0, 0, CalculateDropdownSize())
 						end
 					end
-
-					for i, v in pairs(Settings.Options) do
-						addOption(i, v)
+					
+					if Settings.Options then
+						for i, v in pairs(Settings.Options) do
+							addOption(i, v)
+						end
 					end
 					
 					function DropdownFunctions:UpdateName(New)
@@ -2763,19 +2787,26 @@ function MacLib:Window(Settings)
 						dropdown.Visible = State
 					end
 					function DropdownFunctions:UpdateSelection(newSelection)
+						if not newSelection then return end
 						if type(newSelection) == "number" then
 							for option, data in pairs(OptionObjs) do
 								local isSelected = data.Index == newSelection
 								Toggle(option, isSelected)
 							end
-						elseif type(newSelection) == "table" then
+						elseif type(newSelection) == "string" then
 							for option, data in pairs(OptionObjs) do
+								local isSelected = option == newSelection
+								Toggle(option, isSelected)
+							end
+						elseif type(newSelection) == "table" then
+							for option, _ in pairs(OptionObjs) do
 								local isSelected = table.find(newSelection, option) ~= nil
 								Toggle(option, isSelected)
 							end
 						end
 					end
 					function DropdownFunctions:InsertOptions(newOptions)
+						if not newOptions then return end
 						Settings.Options = newOptions
 						for i, v in pairs(newOptions) do
 							addOption(i, v)
@@ -2804,6 +2835,7 @@ function MacLib:Window(Settings)
 					end
 					
 					function DropdownFunctions:RemoveOptions(remove)
+						if not remove then return end
 						for _, optionName in ipairs(remove) do
 							local optionData = OptionObjs[optionName]
 
@@ -2825,14 +2857,19 @@ function MacLib:Window(Settings)
 						end
 					end
 					function DropdownFunctions:IsOption(optionName)
+						if not optionName then return end
 						return OptionObjs[optionName] ~= nil
+					end
+					
+					if Flag then
+						MacLib.Options[Flag] = DropdownFunctions
 					end
 
 					return DropdownFunctions
 				end
 				
-				function SectionFunctions:Colorpicker(Settings)
-					local ColorpickerFunctions = {}
+				function SectionFunctions:Colorpicker(Settings, Flag)
+					local ColorpickerFunctions = { IgnoreConfig = false, Class = "Colorpicker", Callback = Settings.Callback }
 					
 					local isAlpha = Settings.Alpha and true or false
 					ColorpickerFunctions.Color = Settings.Default
@@ -4094,9 +4131,9 @@ function MacLib:Window(Settings)
 						colorC.BackgroundColor3 = ColorpickerFunctions.Color
 						colorC.BackgroundTransparency = isAlpha and ColorpickerFunctions.Alpha or 0
 						
-						if Settings.Callback then
+						if ColorpickerFunctions.Callback then
 							task.spawn(function()
-								Settings.Callback(ColorpickerFunctions.Color, isAlpha and ColorpickerFunctions.Alpha)
+								ColorpickerFunctions.Callback(ColorpickerFunctions.Color, isAlpha and ColorpickerFunctions.Alpha)
 							end)
 						end
 					end)
@@ -4139,6 +4176,9 @@ function MacLib:Window(Settings)
 						updateFromSettings()
 					end
 					
+					if Flag then
+						MacLib.Options[Flag] = ColorpickerFunctions
+					end
 					return ColorpickerFunctions
 				end
 				
@@ -4423,6 +4463,7 @@ function MacLib:Window(Settings)
 
 					return SpacerFunctions
 				end
+				
 				return SectionFunctions
 			end
 
@@ -4463,11 +4504,111 @@ function MacLib:Window(Settings)
 			function TabFunctions:Select()
 				SelectCurrentTab()
 			end
+			
+			function TabFunctions:InsertConfigSection(Side)
+				local configSection = TabFunctions:Section({ Side = "Left" })
+				local inputPath = nil
+				local selectedConfig = nil
+
+				configSection:Input({
+					Name = "Config Name",
+					Placeholder = "Name",
+					AcceptedCharacters = "All",
+					Callback = function(input)
+						inputPath = input
+					end,
+				})
+
+				local configSelection = configSection:Dropdown({
+					Name = "Select Config",
+					Multi = false,
+					Required = false,
+					Options = MacLib:RefreshConfigList(),
+					Callback = function(Value)
+						selectedConfig = Value
+					end,
+				})
+
+				configSection:Button({
+					Name = "Create Config",
+					Callback = function()
+						if not inputPath or string.gsub(inputPath, " ", "") == "" then
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = "Config name cannot be empty."
+							})
+							return
+						end
+
+						local success, returned = MacLib:SaveConfig(inputPath)
+						if not success then
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = "Unable to save config, return error: " .. returned
+							})
+						end
+
+						WindowFunctions:Notify({
+							Title = "Interface",
+							Description = string.format("Created config %q", inputPath),
+						})
+
+						configSelection:ClearOptions()
+						configSelection:InsertOptions(MacLib:RefreshConfigList())
+					end,
+				})
+
+				configSection:Button({
+					Name = "Load Config",
+					Callback = function()
+						local success, returned = MacLib:LoadConfig(configSelection.Value)
+						if not success then
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = "Unable to load config, return error: " .. returned
+							})
+							return
+						end
+
+						WindowFunctions:Notify({
+							Title = "Interface",
+							Description = string.format("Loaded config %q", configSelection.Value),
+						})
+					end,
+				})
+
+				configSection:Button({
+					Name = "Overwrite Config",
+					Callback = function()
+						local success, returned = MacLib:SaveConfig(configSelection.Value)
+						if not success then
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = "Unable to overwrite config, return error: " .. returned
+							})
+							return
+						end
+
+						WindowFunctions:Notify({
+							Title = "Interface",
+							Description = string.format("Overwrote config %q", configSelection.Value),
+						})
+					end,
+				})
+
+				configSection:Button({
+					Name = "Refresh Config List",
+					Callback = function()
+						configSelection:ClearOptions()
+						configSelection:InsertOptions(MacLib:RefreshConfigList())
+					end,
+				})
+			end
 
 			tabs[tabSwitcher] = elements1
 			return TabFunctions
 		end
-
+	
 		return SectionFunctions
 	end
 
@@ -4969,6 +5110,7 @@ function MacLib:Window(Settings)
 			onUnloadCallback()  
 		end
 		macLib:Destroy()
+		unloaded = true
 	end
 
 	function WindowFunctions.onUnloaded(callback)
@@ -5055,6 +5197,204 @@ function MacLib:Window(Settings)
 	function WindowFunctions:GetScale()
 		return baseUIScale.Scale
 	end
+	
+	local ClassParser = {
+		["Toggle"] = {
+			Save = function(Flag, data)
+				return {
+					type = "Toggle", 
+					flag = Flag, 
+					state = data.State or false
+				}
+			end,
+			Load = function(Flag, data)
+				if MacLib.Options[Flag] and data.State then
+					MacLib.Options[Flag]:UpdateState(data.state)
+				end
+			end
+		},
+		["Slider"] = {
+			Save = function(Flag, data)
+				return {
+					type = "Slider", 
+					flag = Flag, 
+					value = (data.Value and tostring(data.Value)) or false
+				}
+			end,
+			Load = function(Flag, data)
+				if MacLib.Options[Flag] and data.value then
+					MacLib.Options[Flag]:UpdateValue(data.value)
+				end
+			end
+		},
+		["Input"] = {
+			Save = function(Flag, data)
+				return {
+					type = "Input", 
+					flag = Flag, 
+					text = data.Text
+				}
+			end,
+			Load = function(Flag, data)
+				if MacLib.Options[Flag] and data.text and type(data.text) == "string" then
+					MacLib.Options[Flag]:UpdateText(data.text)
+				end
+			end
+		},
+		["Keybind"] = {
+			Save = function(Flag, data)
+				return {
+					type = "Keybind", 
+					flag = Flag, 
+					bind = (typeof(data.Bind) == "EnumItem" and data.Bind.Name) or nil
+				}
+			end,
+			Load = function(Flag, data)
+				if MacLib.Options[Flag] and data.bind then
+					MacLib.Options[Flag]:Bind(Enum.KeyCode[data.bind])
+				end
+			end
+		},
+		["Dropdown"] = {
+			Save = function(Flag, data)
+				return {
+					type = "Dropdown", 
+					flag = Flag, 
+					value = data.Value
+				}
+			end,
+			Load = function(Flag, data)
+				if MacLib.Options[Flag] and data.value then
+					MacLib.Options[Flag]:UpdateSelection(data.value)
+				end
+			end
+		},
+		["Colorpicker"] = {
+			Save = function(Flag, data)
+				local function Color3ToHex(color)
+					return string.format("#%02X%02X%02X", math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255))
+				end
+
+				return {
+					type = "Colorpicker", 
+					flag = Flag, 
+					color = Color3ToHex(data.Color) or nil,
+					alpha = data.Alpha
+				}
+			end,
+			Load = function(Flag, data)
+				local function HexToColor3(hex)
+					local r = tonumber(hex:sub(2, 3), 16) / 255
+					local g = tonumber(hex:sub(4, 5), 16) / 255
+					local b = tonumber(hex:sub(6, 7), 16) / 255
+					return Color3.new(r, g, b)
+				end
+
+				if MacLib.Options[Flag] and data.color then
+					MacLib.Options[Flag]:SetColor(HexToColor3(data.color)) 
+					if data.alpha then
+						MacLib.Options[Flag]:SetAlpha(data.alpha)
+					end
+				end
+			end
+		}
+	}
+	
+	local function BuildFolderTree()
+		local paths = {
+			MacLib.Folder,
+			MacLib.Folder .. "/settings"
+		}
+
+		for i = 1, #paths do
+			local str = paths[i]
+			if not isfolder(str) then
+				makefolder(str)
+			end
+		end
+	end
+	
+	function MacLib:SetFolder(Folder)
+		MacLib.Folder = Folder;
+		BuildFolderTree()
+	end
+	
+	function MacLib:SaveConfig(Path)
+		if (not Path) then
+			return false, "Please select a config file."
+		end
+
+		local fullPath = MacLib.Folder .. "/settings/" .. Path .. ".json"
+
+		local data = {
+			objects = {}
+		}
+
+		for flag, option in next, MacLib.Options do
+			if not ClassParser[option.Class] then continue end
+			if option.IgnoreConfig then continue end
+
+			table.insert(data.objects, ClassParser[option.Class].Save(flag, option))
+		end	
+
+		local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+		if not success then
+			return false, "Unable to encode into JSON data"
+		end
+
+		writefile(fullPath, encoded)
+		return true
+	end
+	
+	function MacLib:LoadConfig(Path)
+		if (not Path) then
+			return false, "Please select a config file."
+		end
+
+		local file = MacLib.Folder .. "/settings/" .. Path .. ".json"
+		if not isfile(file) then return false, "Invalid file" end
+
+		local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+		if not success then return false, "Unable to decode JSON data." end
+
+		for _, option in next, decoded.objects do
+			if ClassParser[option.type] then
+				task.spawn(function() 
+					ClassParser[option.type].Load(option.flag, option) 
+				end)
+			end
+		end
+
+		return true
+	end
+	
+	function MacLib:RefreshConfigList()
+		local list = listfiles(MacLib.Folder .. "/settings")
+
+		local out = {}
+		for i = 1, #list do
+			local file = list[i]
+			if file:sub(-5) == ".json" then
+				local pos = file:find(".json", 1, true)
+				local start = pos
+
+				local char = file:sub(pos, pos)
+				while char ~= "/" and char ~= "\\" and char ~= "" do
+					pos = pos - 1
+					char = file:sub(pos, pos)
+				end
+
+				if char == "/" or char == "\\" then
+					local name = file:sub(pos + 1, start - 1)
+					if name ~= "options" then
+						table.insert(out, name)
+					end
+				end
+			end
+		end
+
+		return out
+	end
 
 	macLib.Enabled = false
 	
@@ -5126,11 +5466,12 @@ function MacLib:Demo()
 	}
 
 	local tabs = {
-		Main = tabGroups.TabGroup1:Tab({ Name = "Demo", Image = "rbxassetid://18821914323" })
+		Main = tabGroups.TabGroup1:Tab({ Name = "Demo", Image = "rbxassetid://18821914323" }),
+		Settings = tabGroups.TabGroup1:Tab({ Name = "Settings", Image = "rbxassetid://10734950309" })
 	}
 	
 	local sections = {
-		MainSection1 = tabs.Main:Section({ Side = "Left" })
+		MainSection1 = tabs.Main:Section({ Side = "Left" }),
 	}
 
 	sections.MainSection1:Header({
@@ -5171,7 +5512,7 @@ function MacLib:Demo()
 		onChanged = function(input)
 			print("Input is now ".. input)
 		end,
-	})
+	}, "Input")
 
 	sections.MainSection1:Slider({
 		Name = "Slider",
@@ -5182,7 +5523,7 @@ function MacLib:Demo()
 		Callback = function(Value)
 			print("Changed to ".. Value)
 		end,
-	})
+	}, "Slider")
 
 	sections.MainSection1:Toggle({
 		Name = "Toggle",
@@ -5193,7 +5534,7 @@ function MacLib:Demo()
 				Description = (value and "Enabled " or "Disabled ") .. "Toggle"
 			})
 		end,
-	})
+	}, "Toggle")
 
 	sections.MainSection1:Keybind({
 		Name = "Keybind",
@@ -5211,7 +5552,7 @@ function MacLib:Demo()
 				Lifetime = 3
 			})
 		end,
-	})
+	}, "Keybind")
 
 	sections.MainSection1:Colorpicker({
 		Name = "Colorpicker",
@@ -5219,7 +5560,7 @@ function MacLib:Demo()
 		Callback = function(color)
 			print("Color: ", color)
 		end,
-	})
+	}, "Colorpicker")
 
 	local alphaColorPicker = sections.MainSection1:Colorpicker({
 		Name = "Transparency Colorpicker",
@@ -5228,7 +5569,7 @@ function MacLib:Demo()
 		Callback = function(color, alpha)
 			print("Color: ", color, " Alpha: ", alpha)
 		end,
-	})
+	}, "TransparencyColorpicker")
 	
 	local rainbowActive
 	local rainbowConnection
@@ -5252,7 +5593,7 @@ function MacLib:Demo()
 				end
 			end
 		end,
-	})
+	}, "RainbowToggle")
 	
 	local optionTable = {}
 	
@@ -5270,7 +5611,7 @@ function MacLib:Demo()
 		Callback = function(Value)
 			print("Dropdown changed: ".. Value)
 		end,
-	})
+	}, "Dropdown")
 
 	local MultiDropdown = sections.MainSection1:Dropdown({
 		Name = "Multi Dropdown",
@@ -5286,12 +5627,12 @@ function MacLib:Demo()
 			end
 			print("Mutlidropdown changed:", table.concat(Values, ", "))
 		end,
-	})
+	}, "MultiDropdown")
 
 	sections.MainSection1:Button({
 		Name = "Update Selection",
 		Callback = function()
-			Dropdown:UpdateSelection(4)
+			Dropdown:UpdateSelection("Option 4")
 			MultiDropdown:UpdateSelection({"Option 2", "Option 5"})
 		end,
 	})
@@ -5314,6 +5655,9 @@ function MacLib:Demo()
 	sections.MainSection1:SubLabel({
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
+	
+	MacLib:SetFolder("Maclib")
+	tabs.Settings:InsertConfigSection("Left")
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
