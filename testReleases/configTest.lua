@@ -2162,6 +2162,7 @@ function MacLib:Window(Settings)
 						local inputText = InputBox.Text
 						local filteredText = AcceptedCharacters(inputText)
 						InputBox.Text = filteredText
+						InputFunctions.Text = filteredText
 						task.spawn(function()
 							if InputFunctions.Callback then
 								InputFunctions.Callback(filteredText)
@@ -5195,11 +5196,11 @@ function MacLib:Window(Settings)
 	local ClassParser = {
 		["Toggle"] = {
 			Save = function(Flag, data)
-				return {type = "Toggle", flag = Flag, value = data.State}
+				return {type = "Toggle", flag = Flag, state = data.State}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:UpdateState(data.value)
+					MacLib.Options[Flag]:UpdateState(data.state)
 				end
 			end
 		},
@@ -5215,21 +5216,22 @@ function MacLib:Window(Settings)
 		},
 		["Input"] = {
 			Save = function(Flag, data)
-				return {type = "Input", flag = Flag, value = data.Text}
+				return {type = "Input", flag = Flag, text = data.Text}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:Bind(data.value)
+				if MacLib.Options[Flag] and type(data.text) == "string" then
+					MacLib.Options[Flag]:UpdateText(data.text)
+					print("exists: ", MacLib.Options[Flag], " text val: ")
 				end
 			end
 		},
 		["Keybind"] = {
 			Save = function(Flag, data)
-				return {type = "Keybind", flag = Flag, value = data.Bind}
+				return {type = "Keybind", flag = Flag, bind = data.Bind.Name}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:Bind(data.value)
+					MacLib.Options[Flag]:Bind(Enum.KeyCode[data.bind])
 				end
 			end
 		},
@@ -5245,11 +5247,11 @@ function MacLib:Window(Settings)
 		},
 		["Colorpicker"] = {
 			Save = function(Flag, data)
-				return {type = "Colorpicker", flag = Flag, value = data.Color, alpha = data.Alpha}
+				return {type = "Colorpicker", flag = Flag, color = data.Color, alpha = data.Alpha}
 			end,
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] then
-					MacLib.Options[Flag]:SetColor(data.value)
+					MacLib.Options[Flag]:SetColor(data.color)
 					MacLib.Options[Flag]:SetAlpha(data.alpha)
 				end
 			end
