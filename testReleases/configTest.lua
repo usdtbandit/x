@@ -2788,7 +2788,12 @@ function MacLib:Window(Settings)
 					end
 					function DropdownFunctions:UpdateSelection(newSelection)
 						if not newSelection then return end
-						if type(newSelection) == "string" then
+						if type(newSelection) == "number" then
+							for option, data in pairs(OptionObjs) do
+								local isSelected = data.Index == newSelection
+								Toggle(option, isSelected)
+							end
+						elseif type(newSelection) == "string" then
 							for option, data in pairs(OptionObjs) do
 								local isSelected = option == newSelection
 								Toggle(option, isSelected)
@@ -5233,7 +5238,6 @@ function MacLib:Window(Settings)
 			Load = function(Flag, data)
 				if MacLib.Options[Flag] and type(data.text) == "string" then
 					MacLib.Options[Flag]:UpdateText(data.text)
-					print("exists: ", MacLib.Options[Flag], " text val: ")
 				end
 			end
 		},
@@ -5242,7 +5246,7 @@ function MacLib:Window(Settings)
 				return {
 					type = "Keybind", 
 					flag = Flag, 
-					bind = typeof(data.Bind) == "Enum" and data.Bind.Name
+					bind = (typeof(data.Bind) == "EnumItem" and data.Bind.Name) or nil
 				}
 			end,
 			Load = function(Flag, data)
@@ -5288,7 +5292,9 @@ function MacLib:Window(Settings)
 
 				if MacLib.Options[Flag] then
 					MacLib.Options[Flag]:SetColor(HexToColor3(data.color)) 
-					MacLib.Options[Flag]:SetAlpha(data.alpha)
+					if data.alpha then
+						MacLib.Options[Flag]:SetAlpha(data.alpha)
+					end
 				end
 			end
 		}
@@ -5626,7 +5632,7 @@ function MacLib:Demo()
 	sections.MainSection1:Button({
 		Name = "Update Selection",
 		Callback = function()
-			Dropdown:UpdateSelection(4)
+			Dropdown:UpdateSelection("Option 4")
 			MultiDropdown:UpdateSelection({"Option 2", "Option 5"})
 		end,
 	})
@@ -5650,8 +5656,8 @@ function MacLib:Demo()
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
 	
-	MacLib:SetFolder("Maclib")
-	tabs.Settings:InsertConfigSection("Left")
+	--MacLib:SetFolder("Maclib")
+	--tabs.Settings:InsertConfigSection("Left")
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
