@@ -5204,11 +5204,11 @@ function MacLib:Window(Settings)
 				return {
 					type = "Toggle", 
 					flag = Flag, 
-					state = data.State
+					state = data.State or false
 				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] then
+				if MacLib.Options[Flag] and data.State then
 					MacLib.Options[Flag]:UpdateState(data.state)
 				end
 			end
@@ -5218,11 +5218,11 @@ function MacLib:Window(Settings)
 				return {
 					type = "Slider", 
 					flag = Flag, 
-					value = tostring(data.Value)
+					value = (data.Value and tostring(data.Value)) or false
 				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] then
+				if MacLib.Options[Flag] and data.value then
 					MacLib.Options[Flag]:UpdateValue(data.value)
 				end
 			end
@@ -5236,7 +5236,7 @@ function MacLib:Window(Settings)
 				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] and type(data.text) == "string" then
+				if MacLib.Options[Flag] and data.text and type(data.text) == "string" then
 					MacLib.Options[Flag]:UpdateText(data.text)
 				end
 			end
@@ -5250,7 +5250,7 @@ function MacLib:Window(Settings)
 				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] then
+				if MacLib.Options[Flag] and data.bind then
 					MacLib.Options[Flag]:Bind(Enum.KeyCode[data.bind])
 				end
 			end
@@ -5264,7 +5264,7 @@ function MacLib:Window(Settings)
 				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] then
+				if MacLib.Options[Flag] and data.value then
 					MacLib.Options[Flag]:UpdateSelection(data.value)
 				end
 			end
@@ -5278,7 +5278,7 @@ function MacLib:Window(Settings)
 				return {
 					type = "Colorpicker", 
 					flag = Flag, 
-					color = Color3ToHex(data.Color),
+					color = Color3ToHex(data.Color) or nil,
 					alpha = data.Alpha
 				}
 			end,
@@ -5290,7 +5290,7 @@ function MacLib:Window(Settings)
 					return Color3.new(r, g, b)
 				end
 
-				if MacLib.Options[Flag] then
+				if MacLib.Options[Flag] and data.color then
 					MacLib.Options[Flag]:SetColor(HexToColor3(data.color)) 
 					if data.alpha then
 						MacLib.Options[Flag]:SetAlpha(data.alpha)
@@ -5656,8 +5656,8 @@ function MacLib:Demo()
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
 	
-	--MacLib:SetFolder("Maclib")
-	--tabs.Settings:InsertConfigSection("Left")
+	MacLib:SetFolder("Maclib")
+	tabs.Settings:InsertConfigSection("Left")
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
