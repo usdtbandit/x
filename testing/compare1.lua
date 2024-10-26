@@ -5673,8 +5673,8 @@ function MacLib:Demo()
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
 	
-	MacLib:SetFolder("Maclib")
-	tabs.Settings:InsertConfigSection("Left")
+	--MacLib:SetFolder("Maclib")
+	--tabs.Settings:InsertConfigSection("Left")
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
