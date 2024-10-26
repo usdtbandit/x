@@ -2792,33 +2792,16 @@ function MacLib:Window(Settings)
 							for option, data in pairs(OptionObjs) do
 								local isSelected = data.Index == newSelection
 								Toggle(option, isSelected)
-								
-								if DropdownFunctions.Callback then
-									DropdownFunctions.Callback(Selected[1] or nil)
-								end
 							end
 						elseif type(newSelection) == "string" then
 							for option, data in pairs(OptionObjs) do
 								local isSelected = option == newSelection
 								Toggle(option, isSelected)
-								
-								if DropdownFunctions.Callback then
-									DropdownFunctions.Callback(Selected[1] or nil)
-								end
 							end
 						elseif type(newSelection) == "table" then
 							for option, _ in pairs(OptionObjs) do
 								local isSelected = table.find(newSelection, option) ~= nil
 								Toggle(option, isSelected)
-							end
-							
-							local Return = {}
-							
-							for _, opt in ipairs(Selected) do
-								Return[opt] = true
-							end
-							if DropdownFunctions.Callback then
-								DropdownFunctions.Callback(Return)
 							end
 						end
 					end
@@ -5225,7 +5208,7 @@ function MacLib:Window(Settings)
 				}
 			end,
 			Load = function(Flag, data)
-				if MacLib.Options[Flag] and data.state then
+				if MacLib.Options[Flag] and data.State then
 					MacLib.Options[Flag]:UpdateState(data.state)
 				end
 			end
@@ -5673,8 +5656,8 @@ function MacLib:Demo()
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
 	
-	--MacLib:SetFolder("Maclib")
-	--tabs.Settings:InsertConfigSection("Left")
+	MacLib:SetFolder("Maclib")
+	tabs.Settings:InsertConfigSection("Left")
 	
 	Window.onUnloaded(function()
 		print("Unloaded!")
