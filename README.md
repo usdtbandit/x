@@ -1,7 +1,14 @@
 # Maclib UI Library
 
-[Maclib Documentation (Gitbook)](https://brady-xyz.gitbook.io/maclib-ui-library)
+- Extensive Documentation
+- Beautiful Interface
+- Consistent Updates
+- And much more!
 
-Extensive Documentation, Beautiful Interface, Consistent updates, and more.
+## Resources:
 
-Fluent/dawid - Some configuration system
+- [Maclib Documentation (Gitbook)](https://brady-xyz.gitbook.io/maclib-ui-library)
+
+## Credits:
+
+- [dawid-scripts/Fluent](https://github.com/dawid-scripts/Fluent) - Configuration system.
