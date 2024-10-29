@@ -88,7 +88,7 @@ sections.MainSection1:Button({
 	end,
 })
 
-local inp = sections.MainSection1:Input({
+sections.MainSection1:Input({
 	Name = "Input",
 	Placeholder = "Input",
 	AcceptedCharacters = "All",
