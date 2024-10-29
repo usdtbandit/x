@@ -88,7 +88,7 @@ sections.MainSection1:Button({
 	end,
 })
 
-sections.MainSection1:Input({
+local inp = sections.MainSection1:Input({
 	Name = "Input",
 	Placeholder = "Input",
 	AcceptedCharacters = "All",
@@ -99,7 +99,7 @@ sections.MainSection1:Input({
 		})
 	end,
 	onChanged = function(input)
-		print("Input is now ".. input)
+		print("Input is now " .. input)
 	end,
 }, "Input")
 
@@ -109,9 +109,10 @@ sections.MainSection1:Slider({
 	Minimum = 0,
 	Maximum = 100,
 	DisplayMethod = "Percent",
+	Precision = 0,
 	Callback = function(Value)
 		print("Changed to ".. Value)
-	end,
+	end
 }, "Slider")
 
 sections.MainSection1:Toggle({
@@ -127,6 +128,7 @@ sections.MainSection1:Toggle({
 
 sections.MainSection1:Keybind({
 	Name = "Keybind",
+	Blacklist = false,
 	Callback = function(binded)
 		Window:Notify({
 			Title = "Demo Window",
@@ -169,27 +171,31 @@ sections.MainSection1:Toggle({
 	Default = false,
 	Callback = function(value)
 		rainbowActive = value
+
 		if rainbowActive then
 			rainbowConnection = game:GetService("RunService").RenderStepped:Connect(function(deltaTime)
 				hue = (hue + deltaTime * 0.1) % 1
-				local newColor = Color3.fromHSV(hue, 1, 1)
-				alphaColorPicker:SetColor(newColor)
+				alphaColorPicker:SetColor(Color3.fromHSV(hue, 1, 1))
 			end)
-		else
-			if rainbowConnection then
-				rainbowConnection:Disconnect()
-				rainbowConnection = nil
-			end
+		elseif rainbowConnection then
+			rainbowConnection:Disconnect()
+			rainbowConnection = nil
 		end
 	end,
 }, "RainbowToggle")
 
-local optionTable = {}
-
-for i = 1,10 do
-	local formatted = "Option ".. tostring(i)
-	table.insert(optionTable, formatted)
-end
+local optionTable = {
+	"Apple",
+	"Banana",
+	"Orange",
+	"Grapes",
+	"Pineapple",
+	"Mango",
+	"Strawberry",
+	"Blueberry",
+	"Watermelon",
+	"Peach"
+}
 
 local Dropdown = sections.MainSection1:Dropdown({
 	Name = "Dropdown",
@@ -208,7 +214,7 @@ local MultiDropdown = sections.MainSection1:Dropdown({
 	Multi = true,
 	Required = false,
 	Options = optionTable,
-	Default = {"Option 1", "Option 3"},
+	Default = {"Apple", "Orange"},
 	Callback = function(Value)
 		local Values = {}
 		for Value, State in next, Value do
@@ -221,8 +227,8 @@ local MultiDropdown = sections.MainSection1:Dropdown({
 sections.MainSection1:Button({
 	Name = "Update Selection",
 	Callback = function()
-		Dropdown:UpdateSelection("Option 4")
-		MultiDropdown:UpdateSelection({"Option 2", "Option 5"})
+		Dropdown:UpdateSelection("Grapes")
+		MultiDropdown:UpdateSelection({"Banana", "Pineapple"})
 	end,
 })
 
