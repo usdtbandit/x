@@ -18,7 +18,7 @@ local globalSettings = {
 		Callback = function(bool)
 			Window:SetAcrylicBlurState(bool)
 			Window:Notify({
-				Title = "MacLib Demo",
+				Title = Window.Settings.Title,
 				Description = (bool and "Enabled" or "Disabled") .. " UI Blur",
 				Lifetime = 5
 			})
@@ -30,7 +30,7 @@ local globalSettings = {
 		Callback = function(bool)
 			Window:SetNotificationsState(bool)
 			Window:Notify({
-				Title = "MacLib Demo",
+				Title = Window.Settings.Title,
 				Description = (bool and "Enabled" or "Disabled") .. " Notifications",
 				Lifetime = 5
 			})
@@ -42,7 +42,7 @@ local globalSettings = {
 		Callback = function(bool)
 			Window:SetUserInfoState(bool)
 			Window:Notify({
-				Title = "MacLib Demo",
+				Title = Window.Settings.Title,
 				Description = (bool and "Showing" or "Redacted") .. " User Info",
 				Lifetime = 5
 			})
@@ -67,7 +67,7 @@ sections.MainSection1:Header({
 	Name = "Header #1"
 })
 
-sections.MainSection1:Button({
+local button = sections.MainSection1:Button({
 	Name = "Button",
 	Callback = function()
 		Window:Dialog({
@@ -259,3 +259,4 @@ Window.onUnloaded(function()
 end)
 
 tabs.Main:Select()
+MacLib:LoadAutoLoadConfig()
