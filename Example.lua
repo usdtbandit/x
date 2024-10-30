@@ -67,7 +67,7 @@ sections.MainSection1:Header({
 	Name = "Header #1"
 })
 
-local button = sections.MainSection1:Button({
+sections.MainSection1:Button({
 	Name = "Button",
 	Callback = function()
 		Window:Dialog({
