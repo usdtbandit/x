@@ -958,7 +958,6 @@ sections.MiscellaneousSection4:Slider({
 	Default = 50,
 	DisplayMethod = "Value",
 	Precision = 0,
-	Suffix = "$"
 }, "MinimumTradeValue")
 
 sections.MiscellaneousSection4:Dropdown({
