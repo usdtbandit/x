@@ -1,7 +1,7 @@
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
 local Window = MacLib:Window({
-	Title = "MacLib Demo",
+	Title = "Maclib Demo",
 	Subtitle = "This is a subtitle.",
 	Size = UDim2.fromOffset(868, 650),
 	DragStyle = 1,
@@ -71,7 +71,7 @@ sections.MainSection1:Button({
 	Name = "Button",
 	Callback = function()
 		Window:Dialog({
-			Title = "MacLib Demo",
+			Title = Window.Settings.Title,
 			Description = "Lorem ipsum odor amet, consectetuer adipiscing elit. Eros vestibulum aliquet mattis, ex platea nunc.",
 			Buttons = {
 				{
@@ -94,7 +94,7 @@ sections.MainSection1:Input({
 	AcceptedCharacters = "All",
 	Callback = function(input)
 		Window:Notify({
-			Title = "MacLib Demo",
+			Title = Window.Settings.Title,
 			Description = "Successfully set input to " .. input
 		})
 	end,
@@ -120,7 +120,7 @@ sections.MainSection1:Toggle({
 	Default = false,
 	Callback = function(value)
 		Window:Notify({
-			Title = "MacLib Demo",
+			Title = Window.Settings.Title,
 			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
 		})
 	end,
