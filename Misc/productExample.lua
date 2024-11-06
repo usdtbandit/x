@@ -954,9 +954,11 @@ sections.MiscellaneousSection4:Dropdown({
 sections.MiscellaneousSection4:Slider({
 	Name = "Minimum Value",
 	Minimum = 0,
-	Maximum = 10000,
+	Maximum = 1000,
 	Default = 50,
 	DisplayMethod = "Value",
+	Precision = 0,
+	Suffix = "$"
 }, "MinimumTradeValue")
 
 sections.MiscellaneousSection4:Dropdown({
