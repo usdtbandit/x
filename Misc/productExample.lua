@@ -455,7 +455,7 @@ sections.VisualsSection1:Toggle({
 
 sections.VisualsSection1:Input({
 	Name = "Crosshair Image ID",
-	Placeholder = "Image ID here",
+	Placeholder = "Image ID here"
 }, "CrosshairImageID")
 
 --[[ SECTION 2 ]]
@@ -958,6 +958,7 @@ sections.MiscellaneousSection4:Slider({
 	Default = 50,
 	DisplayMethod = "Value",
 	Precision = 0,
+	Suffix = "$"
 }, "MinimumTradeValue")
 
 sections.MiscellaneousSection4:Dropdown({
