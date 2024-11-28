@@ -6,6 +6,8 @@
 - Consistent Updates
 - And much more!
 
+Join the discord - https://discord.gg/FWC8PpWtQv
+
 ## Resources:
 
 - [Maclib Documentation (Gitbook)](https://brady-xyz.gitbook.io/maclib-ui-library)
