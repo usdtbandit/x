@@ -52,7 +52,7 @@ local function GetGui()
 	newGui.ResetOnSpawn = false
 	newGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	newGui.DisplayOrder = 2147483647
-	newGui.Name = "ocelot.cc"
+	newGui.Name = "capalot.cc"
 
 	local parent = RunService:IsStudio() 
 		and LocalPlayer:FindFirstChild("PlayerGui")
