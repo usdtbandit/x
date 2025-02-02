@@ -4755,6 +4755,29 @@ function MacLib:Window(Settings)
 					end,
 				})
 
+                configSection:Button({
+                    Name = "Remove autoload", 
+                    Callback = function()
+                        local path = MacLib.Folder .. "/settings/autoload.txt"
+                        if(isfile(path)) then
+                            local autoloadedConfig = readfile(path)
+
+                            task.wait(); 
+
+                            delfile(path); 
+                            WindowFunctions:Notify({
+                                Title = "Interface", 
+                                Description = "Autoload has been disabled"
+                            })
+                        else 
+                            WindowFunctions:Notify({
+                                Title = "Interface", 
+                                Description = "Error! there is no autoload set!"
+                            })
+                        end 
+                    end, 
+                })
+
 				autoloadLabel = configSection:Label({Text = "Autoload config: None"})
 
 				if isfile(MacLib.Folder .. "/settings/autoload.txt") then
