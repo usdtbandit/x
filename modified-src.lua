@@ -54,10 +54,7 @@ local function GetGui()
 	newGui.DisplayOrder = 2147483647
 	newGui.Name = "capalot.cc"
 
-	local parent = RunService:IsStudio() 
-		and LocalPlayer:FindFirstChild("PlayerGui")
-		or (gethui and gethui())
-		or (cloneref and cloneref(MacLib.GetService("CoreGui")) or MacLib.GetService("CoreGui"))
+	local parent = gethui() 
 
 	newGui.Parent = parent
 	return newGui
